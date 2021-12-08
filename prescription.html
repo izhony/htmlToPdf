@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>处方{{.Rid }}-叮呗</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+            font-size: 12px;
+        }
+
+        li {
+            list-style: none
+        }
+
+        img {
+            vertical-align: top;
+            border: none
+        }
+
+        body {
+            width: 100%;
+        }
+
+        .wrap {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #000;
+            padding: 24px;
+        }
+
+        .title {
+            text-align: center;
+        }
+
+        .select-btn {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            border: 1px solid #CCC;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #444;
+            padding-bottom: 12px;
+        }
+
+        .header-right {
+            text-align: right;
+        }
+
+        .header-right span {
+            display: block;
+        }
+
+        .info {
+            border-bottom: 1px solid #444;
+            padding-bottom: 12px;
+        }
+
+        .info tr {
+            margin-top: 5px;
+            height: 24px;
+        }
+
+        .field {
+            float: left;
+        }
+
+        .under-line {
+            /* display: inline-block; */
+            /* width: 80px; */
+            height: 100%;
+            border-bottom: 1px solid #444444;
+            margin: auto;
+            width: auto;
+            overflow: auto;
+        }
+
+        .between {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .content-main {
+            margin: 0;
+        }
+
+        .content > h2 {
+            padding: 12px 0;
+        }
+
+        .content {
+            border-bottom: 1px solid #444444;
+            padding-bottom: 24px;
+        }
+
+        .footer {
+            margin-top: 24px;
+        }
+
+        .footer tr {
+            margin-top: 5px;
+            height: 24px;
+        }
+
+        .qr-code {
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .qr-code > img {
+            width: 120px;
+            height: 120px;
+            display: inline-block;
+        }
+
+        .field > img {
+            width: 60px;
+            height: 60px;
+        }
+
+        .qr-code > img[src=""] {
+
+            background-color: gray;
+        }
+
+        .btn-wrap {
+            width: 100%;
+            margin: 24px auto;
+            bottom: 12px;
+            text-align: center;
+        }
+
+        .btn {
+            width: 300px;
+            height: 46px;
+            background: #409EFF;
+            border: none;
+            border-radius: 5px;
+            color: aliceblue;
+        }
+    </style>
+</head>
+<body>
+{% load static %}
+<div class="wrap">
+    <div class="title">
+        <h2>{{ .GetTitleName }}</h2>
+        {{ if .CanLiuzhuan }}
+        <h3>（外配）</h3>
+        {{end}}
+    </div>
+    <div class="header">
+        <table border="0">
+            <tr align="center">
+                <td>类别：</td>
+                <td><img src="{% static '/report/no_checked.png' %}" style="width: 14px"/>公费</td>
+                <td><img src="{% static '/report/checked.png' %}" style="width: 16px"/>自费</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><img src="{% static '/report/no_checked.png' %}" style="width: 14px"/>医保</td>
+                <td><img src="{% static '/report/no_checked.png' %}" style="width: 14px"/>其他</td>
+            </tr>
+        </table>
+        <div class="header-right">
+            <span>处方编号：</span>
+            <span>{{.Rid }}</span>
+        </div>
+    </div>
+    <div class="info">
+        <table border="0" width="100%">
+            <tr class="between">
+                <td width="30%">
+                    <div class="field">姓名：<span>{{ .Patient.Name }}</span></div>
+                </td>
+                <td width="30%">
+                    <div class="field">性别：<span>{{ .Patient.GetGenderDisplay }}</span></div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <td width="30%">
+        <div class="field">年龄：<span>{{ .Patient.GetAgeByIdno}}</span></div>
+    </td>
+    <tr class="between">
+        <td width="40%">
+            <div class="field">门诊ID号/住院号：<span>{{ .Diagnosis.Rid}}</span></div>
+        </td>
+        <td width="40%">
+            <div class="field">科别（病区/床位号）：<span>
+                {{ if .Owner.Department.Department }}
+                    {{ .Owner.Department.Name }}
+                {{ end }}
+            </span></div>
+        </td>
+    </tr>
+    <tr class="between">
+        <td width="40%">
+            <div class="field">临床诊断：<span>{{ .GetOpinionNames }}</span></div>
+        </td>
+        <td width="40%">
+            <div class="field">开具日期：<span>{{ .CreatedTime }}</span></div>
+        </td>
+    </tr>
+    <tr class="between">
+        <td width="100%">
+            <div class="field">住址/电话:{{ .Patient.Address}}
+                &nbsp;&nbsp;&nbsp;&nbsp; {{ .Patient.Mobile}}
+            </div>
+        </td>
+    </tr>
+    </table>
+</div>
+<div class="content">
+    <h2>Rp</h2>
+    {{range $value := .Items }}
+    <ol class="content-main">
+        <li class="content-item">
+            <div class="between">
+                <div class="content-left">
+                    <div class="content-left-top">{{ .Forloop.Counter }}、{{$value.Name}}</div>
+                    {{ if ne .Type  "2" }}
+                    <div class="content-left-bottom">
+                        用法：{{ $value.Usage }}；{{ $value.Frequency }}；每次{{ $value.GetDosage }}{{ $value.GetDosageUnit }}
+                    </div>
+                    {{ end }}
+                </div>
+                <div class="content-right">{{ if ne .Type "2" }}[{{ $value.GetSize }}]{{ end }}
+                    x{{ $value.Quantity }}{{ .I.Unit }}
+                </div>
+            </div>
+            {{ end }}
+            {{ if eq .Type "2" }}
+            <div class="content-left-bottom">
+                {{ .GetZhongyaoUsages }}
+            </div>
+            {{ end }}
+        </li>
+    </ol>
+
+</div>
+<div class="footer between">
+    <table border="0" width="80%">
+
+
+    </table>
+    <div class="qr-code">
+        <img src="{{ .GetQrcode }}" alt="">
+        {{ if .CanLiuzhuan }}
+        <div>微信二维码付款</div>
+        {{ end }}
+    </div>
+</div>
+</div>
+{{ if eq .Mode "wx" }}
+<div class="btn-wrap">
+    <button id="btn" class="btn">
+        马上取药
+    </button>
+</div>
+{{ end }}
+<script>
+    var app = document.getElementById('btn');
+    app.onclick = function () {
+        // 这里把处方ID传回来
+        wx.miniProgram.redirectTo({url: '/pages/prescription/send?id={{ .rid }}'});
+    };
+</script>
+
+</body>
+</html>
